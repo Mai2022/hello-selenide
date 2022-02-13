@@ -13,6 +13,8 @@ repositories {
 ext {
     allureVersion = '2.16.1'
     junitVersion = '5.8.1'
+    cucumberVersion = '7.2.3'
+
 }
 
 sourceCompatibility = '11'
@@ -30,9 +32,17 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+
+    testImplementation("io.cucumber:cucumber-java:${cucumberVersion}")
+    testImplementation("io.cucumber:cucumber-junit:${cucumberVersion}")
+    testImplementation("org.junit.vintage:junit-vintage-engine:${junitVersion}")
+    testImplementation("io.qameta.allure:allure-cucumber4-jvm:2.15.0")
+
 }
 
 test {
+    systemProperties["selenide.remote"]="http://localhost:4444/wd/hub";
+    systemProperties["selenide.browser"]="firefox";
     ignoreFailures = true
     useJUnitPlatform()
 }
@@ -42,5 +52,27 @@ allure {
 
     useJUnit5 {
         version = "${allureVersion}"
+    }
+}
+
+configurations {
+    cucumberRuntime {
+        extendsFrom testImplementation
+    }
+}
+
+task cucumberCli() {
+    dependsOn assemble, testClasses
+    doLast {
+        javaexec {
+            main = "io.cucumber.core.cli.Main"
+            classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+            args = [
+                    '--plugin', 'pretty',
+                    '--plugin', 'html:target/cucumber-report.html',
+                    '--glue', 'com.sinensia',
+                    'src/test/resources',
+            ]
+        }
     }
 }
