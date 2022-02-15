@@ -1,40 +1,29 @@
 pipeline {
     agent any
-
     stages {
-        stage('Test') {
+        stage('Clean') {
             steps {
-                sh './gradlew clean test check'
+                sh './gradlew clean'
+            }
+        }
+        stage('Test') {
+            // parallelize browser tests
+            parallel {
+                stage('test: chrome') {
+                    steps {
+                        sh './gradlew test'
+                    }
+                }
+                stage('test: firefox') {
+                    steps {
+                        sh './gradlew testFirefox'
+                    }
+                }
             }
             post {
                 always {
                     junit 'build/test-results/test/*.xml'
-                    //jacoco execPattern: 'build/jacoco/*.exec'
-                    //recordIssues(
-                      //  tools: [
-                        //   pmdParser(pattern: 'build/reports/pmd/*.xml'),
-                         //   pit(pattern: 'build/reports/pitest/**/mutations.xml')
-                       // ]
-                    //)
                 }
-            }
-        }
-        stage('Build') {
-            steps {
-                // Run Gradle Wrapper
-                sh "./gradlew assemble"
-            }
-            post {
-                // If Gradle was able to run the tests, even if some of the test
-                // failed, record the test results and archive the jar file.
-                success {
-                    archiveArtifacts 'build/libs/*.jar'
-                }
-            }
-        }
-        stage('Deploy') {
-            steps {
-                   echo 'Deploying...'
             }
         }
     }
