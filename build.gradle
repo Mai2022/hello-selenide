@@ -14,7 +14,6 @@ ext {
     allureVersion = '2.16.1'
     junitVersion = '5.8.1'
     cucumberVersion = '7.2.3'
-
 }
 
 sourceCompatibility = '11'
@@ -40,12 +39,38 @@ dependencies {
 
 }
 
-test {
+tasks.withType(Test) {
+    systemProperties["selenide.baseUrl"]="https://robobar.sinensia.pw"
     systemProperties["selenide.remote"]="http://localhost:4444/wd/hub";
-    systemProperties["selenide.browser"]="firefox";
+    systemProperties["selenide.browser"]="chrome";
+    //systemProperties["selenide.browserVersion"]="97.0"
+    systemProperties["selenide.browserSize"]="1024x768";
+}
+
+test {
     ignoreFailures = true
     useJUnitPlatform()
 }
+
+task testFirefox (type:Test) {
+    systemProperties["selenide.browser"] = "firefox"
+}
+
+task 'testFirefox95' (type:Test) {
+    systemProperties["selenide.browser"] = "firefox"
+    systemProperties["selenide.browserVersion"] = "95.0"
+}
+
+task 'testEdge' (type:Test) {
+    systemProperties["selenide.browser"] = "edge"
+}
+
+task 'testOpera' (type:Test) {
+    systemProperties["selenide.browser"] = "opera"
+    systemProperties["selenide.browserSize"] = "600x800"
+}
+
+
 allure {
     autoconfigure = true
     version = "${allureVersion}"
